@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/hisbanbardai/tinyapp/issues"
   },
-  "homepage": "https://github.com/hisbanbardai/tinyapp#readme"
+  "homepage": "https://github.com/hisbanbardai/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
 }
