@@ -5,6 +5,9 @@ const PORT = 8081; // default port 8081
 //setting ejs as our template engine
 app.set("view engine", "ejs");
 
+//body parser library to convert request body from Buffer to string
+app.use(express.urlencoded({ extended: true }));
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
