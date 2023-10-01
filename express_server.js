@@ -8,6 +8,11 @@ app.set("view engine", "ejs");
 //body parser library to convert request body from Buffer to string
 app.use(express.urlencoded({ extended: true }));
 
+function generateRandomString() {
+  //toString(36) to convert it into base 36 (26 char + 0-9)
+  return Math.random().toString(36).slice(2,8);
+}
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
