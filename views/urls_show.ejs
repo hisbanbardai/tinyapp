@@ -12,7 +12,7 @@
   </head>
 
   <body>
-    <%- include("./partials/_header.ejs") %> 
+    <%- include("./partials/_header.ejs") %>
     <div class="card text-center">
       <div class="card-header"></div>
       <div class="card-body">
@@ -20,6 +20,22 @@
         <p class="card-text">
           Short URL ID: <a href="/u/<%= id %>"><%= id %></a>
         </p>
+        <h2>
+          Edit
+        </h2>
+        <form class="form-inline" action="/urls/<%= id %>" method="POST">
+          <div class="form-group mb-2" style="margin-left: 17em;">
+            <label for="longURL">Enter new URL:</label>
+            <input
+              class="form-control"
+              type="text"
+              name="longURL"
+              placeholder="http://"
+              style="width: 300px; margin: 1em"
+            />
+            <button type="submit" class="btn btn-primary">Update</button>
+          </div>
+        </form>
       </div>
       <div class="card-footer text-muted"></div>
     </div>
