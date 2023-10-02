@@ -43,7 +43,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   //if id does not exist
   if (!urlDatabase[req.params.id]) {
-    res.send("Does not exist in the urlDatabase.");
+    res.status(404).send("Does not exist in the urlDatabase.");
   } else {
     const templateVars = {
       id: req.params.id,
@@ -63,7 +63,7 @@ app.post("/urls", (req, res) => {
 app.get("/u/:id", (req, res) => {
   //if id does not exist
   if (!urlDatabase[req.params.id]) {
-    res.send("Does not exist in the urlDatabase.");
+    res.status(404).send("Does not exist in the urlDatabase.");
   } else {
     const longURL = urlDatabase[req.params.id];
     res.redirect(longURL);
