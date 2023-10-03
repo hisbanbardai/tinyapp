@@ -1,4 +1,5 @@
 const express = require("express");
+const cookieParser = require('cookie-parser')
 const app = express();
 const PORT = 8081; // default port 8081
 
@@ -7,6 +8,9 @@ app.set("view engine", "ejs");
 
 //body parser library to convert request body from Buffer to string
 app.use(express.urlencoded({ extended: true }));
+
+//cookie parser library to parse cookie headers 
+app.use(cookieParser());
 
 //generate string for shortURL
 function generateRandomString() {
@@ -32,12 +36,18 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = {
+    username: req.cookies["username"],
+    urls: urlDatabase,
+  };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new.ejs");
+  const templateVars = {
+    username: req.cookies["username"],
+  };
+  res.render("urls_new.ejs", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
@@ -46,6 +56,7 @@ app.get("/urls/:id", (req, res) => {
     res.status(404).send("Does not exist in the urlDatabase.");
   } else {
     const templateVars = {
+      username: req.cookies["username"],
       id: req.params.id,
       longURL: urlDatabase[req.params.id],
     };
@@ -80,13 +91,13 @@ app.post("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   //updating longURL in urlDatabase
   urlDatabase[shortURL] = req.body.longURL;
-  res.redirect("/urls"); 
+  res.redirect("/urls");
 });
 
 app.post("/login", (req, res) => {
   res.cookie("username", req.body.username);
   res.redirect("/urls");
-})
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
