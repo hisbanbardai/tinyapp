@@ -1,5 +1,5 @@
 const express = require("express");
-const cookieParser = require('cookie-parser')
+const cookieParser = require("cookie-parser");
 const app = express();
 const PORT = 8081; // default port 8081
 
@@ -9,7 +9,7 @@ app.set("view engine", "ejs");
 //body parser library to convert request body from Buffer to string
 app.use(express.urlencoded({ extended: true }));
 
-//cookie parser library to parse cookie headers 
+//cookie parser library to parse cookie headers
 app.use(cookieParser());
 
 //generate string for shortURL
@@ -49,18 +49,39 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  for (const user in users) {
+    const user_id = req.cookies["user_id"];
+    if (users[user].id === user_id) {
+      const templateVars = {
+        user: users[user],
+        urls: urlDatabase,
+      };
+      res.render("urls_index", templateVars);
+      return;
+    }
+  }
   const templateVars = {
-    username: req.cookies["username"],
+    user: {},
     urls: urlDatabase,
   };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
+  for (const user in users) {
+    const user_id = req.cookies["user_id"];
+    if (users[user].id === user_id) {
+      const templateVars = {
+        user: users[user],
+      };
+      res.render("urls_new", templateVars);
+      return;
+    }
+  }
   const templateVars = {
-    username: req.cookies["username"],
+    user: {}
   };
-  res.render("urls_new.ejs", templateVars);
+  res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
@@ -68,8 +89,20 @@ app.get("/urls/:id", (req, res) => {
   if (!urlDatabase[req.params.id]) {
     res.status(404).send("Does not exist in the urlDatabase.");
   } else {
+    for (const user in users) {
+      const user_id = req.cookies["user_id"];
+      if (users[user].id === user_id) {
+        const templateVars = {
+          user: users[user],
+          id: req.params.id,
+          longURL: urlDatabase[req.params.id],
+        };
+        res.render("urls_show", templateVars);
+        return;
+      }
+    }
     const templateVars = {
-      username: req.cookies["username"],
+      user: {},
       id: req.params.id,
       longURL: urlDatabase[req.params.id],
     };
@@ -108,18 +141,18 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
+  //res.cookie("username", req.body.username);
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect("urls");
-})
+});
 
 app.get("/register", (req, res) => {
   res.render("urls_register");
-})
+});
 
 app.post("/register", (req, res) => {
   const id = generateRandomString();
@@ -127,11 +160,11 @@ app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   //creating a new user
-  users[id] = {id, email, password};
+  users[id] = { id, email, password };
   //saving user id as cookie
   res.cookie("user_id", id);
   res.redirect("/urls");
-})
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
