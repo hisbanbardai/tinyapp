@@ -18,6 +18,16 @@ function generateRandomString() {
   return Math.random().toString(36).slice(2, 8);
 }
 
+//user lookup helper function
+function getUserByEmail(email) {
+  for (const user in users) {
+    if (users[user].email === email) {
+      return users[user];
+    }
+  }
+  return null;
+}
+
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
@@ -79,7 +89,7 @@ app.get("/urls/new", (req, res) => {
     }
   }
   const templateVars = {
-    user: {}
+    user: {},
   };
   res.render("urls_new", templateVars);
 });
@@ -159,6 +169,19 @@ app.post("/register", (req, res) => {
   //fetching email and password submitted to the form
   const email = req.body.email;
   const password = req.body.password;
+
+  //check if email and password are empty strings
+  if (!email || !password) {
+    res.status(400).send("Please enter both email and password");
+    return;
+  }
+
+  //check if email already exists
+  if (getUserByEmail(email)) {
+    res.status(400).send("Email already exists. Please use another email");
+    return;
+  }
+
   //creating a new user
   users[id] = { id, email, password };
   //saving user id as cookie
