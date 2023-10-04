@@ -20,18 +20,16 @@
         <b style="margin-left: 30em; margin-top: 0.5em"
           >Logged in as: <%= user.email %> User!</b
         >
-        <form action="/logout" method="POST" style="margin-left: 1em; margin-top: 0.4em;">
+        <form
+          action="/logout"
+          method="POST"
+          style="margin-left: 1em; margin-top: 0.4em"
+        >
           <button type="submit">Logout</button>
         </form>
         <%} else {%>
-        <form
-          action="/login"
-          method="POST"
-          style="margin-left: 32em; margin-top: 0.5em"
-        >
-          <input type="text" name="username" placeholder="Username" />
-          <button type="submit">Login</button>
-        </form>
+        <a href="/register" style="margin-left: 38em; color: white; margin-top: 0.35em;">Register</a>
+        <a href="/login" style="margin-left: 3em; color: white; margin-top: 0.35em;">Login</a>
         <%}%>
       </div>
     </div>
