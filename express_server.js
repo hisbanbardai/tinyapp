@@ -28,6 +28,10 @@ function getUserByEmail(email) {
   return null;
 }
 
+function checkIfCookieSet(req) {
+  return req.cookies["user_id"]; 
+}
+
 //URL DB
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
@@ -166,6 +170,13 @@ app.post("/urls/:id", (req, res) => {
 
 //REGISTER ROUTES
 app.get("/register", (req, res) => {
+
+  //if user is logged in then redirect to urls page
+  if(checkIfCookieSet(req)) {
+    res.redirect("/urls");
+    return;
+  }
+
   const templateVars = {
     user: {},
   };
@@ -200,6 +211,13 @@ app.post("/register", (req, res) => {
 
 //LOGIN ROUTES
 app.get("/login", (req, res) => {
+
+  //if user is logged in then redirect to urls page
+  if(checkIfCookieSet(req)) {
+    res.redirect("/urls");
+    return;
+  }
+  
   const templateVars = {
     user: {},
   };
