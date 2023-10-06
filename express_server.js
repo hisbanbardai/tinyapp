@@ -171,7 +171,7 @@ app.get("/urls/:id", (req, res) => {
 
 //CREATE NEW URL ROUTE
 app.post("/urls", (req, res) => {
-  //check if user is not logged in then redirect to login page
+  //check if user is not logged in
   if (!checkIfCookieSet(req)) {
     res.send(
       "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n"
@@ -207,16 +207,74 @@ app.get("/u/:id", (req, res) => {
 //DELETE URL ROUTE
 app.post("/urls/:id/delete", (req, res) => {
   const id = req.params.id;
-  delete urlDatabase[`${id}`];
-  res.redirect(`/urls`);
+  //check if id does not exist
+  if (!urlDatabase[id]) {
+    res
+      .status(404)
+      .send(
+        "<html><body><h3>Short URL does not exist in the urlDatabase. Go to <a href='/'>home</a> page</h3></body></html>\n"
+      );
+    return;
+  }
+
+  //check if user is not logged in
+  if (!checkIfCookieSet(req)) {
+    res.send(
+      "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n"
+    );
+    return;
+  }
+
+  //check if user does not own url
+  const user_id = req.cookies["user_id"];
+  //get user's urls
+  const urls = urlsForUser(user_id);
+  //check if user is accessing own url
+  if (urls[id]) {
+    delete urlDatabase[`${id}`];
+    res.redirect(`/urls`);
+    return;
+  }
+  res.send(
+    "<html><body><h3>You are trying to delete a url that you do not own.</h3></body></html>\n"
+  );
 });
 
 //UPDATE EXISITNG URL ROUTE
 app.post("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
-  //updating longURL in urlDatabase
-  urlDatabase[shortURL].longURL = req.body.longURL;
-  res.redirect("/urls");
+  //check if id does not exist
+  if (!urlDatabase[shortURL]) {
+    res
+      .status(404)
+      .send(
+        "<html><body><h3>Short URL does not exist in the urlDatabase. Go to <a href='/'>home</a> page</h3></body></html>\n"
+      );
+    return;
+  }
+
+  //check if user is not logged in
+  if (!checkIfCookieSet(req)) {
+    res.send(
+      "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n"
+    );
+    return;
+  }
+
+  //check if user does not own url
+  const user_id = req.cookies["user_id"];
+  //get user's urls
+  const urls = urlsForUser(user_id);
+  //check if user is accessing own url
+  if (urls[shortURL]) {
+    //updating longURL in urlDatabase
+    urlDatabase[shortURL].longURL = req.body.longURL;
+    res.redirect("/urls");
+    return;
+  }
+  res.send(
+    "<html><body><h3>You are trying to update a url that you do not own.</h3></body></html>\n"
+  );
 });
 
 //REGISTER ROUTES
