@@ -28,11 +28,13 @@ function getUserByEmail(email) {
   return null;
 }
 
+//URL DB
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
 };
 
+//USERS DB
 const users = {
   userRandomID: {
     id: "userRandomID",
@@ -46,10 +48,12 @@ const users = {
   },
 };
 
+//DEFAULT HOMEPAGE ROUTE
 app.get("/", (req, res) => {
   res.redirect("/urls");
 });
 
+//INITIAL TESTING PURPOSE ROUTES
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
@@ -115,7 +119,7 @@ app.get("/urls/:id", (req, res) => {
         return;
       }
     }
-    //if no user is logged in then send empty user object 
+    //if no user is logged in then send empty user object
     const templateVars = {
       user: {},
       id: req.params.id,
@@ -133,7 +137,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
-//REDIRECT TO LONG URL USING SHORT URL
+//REDIRECT TO LONG URL USING SHORT URL ROUTE
 app.get("/u/:id", (req, res) => {
   //if id does not exist
   if (!urlDatabase[req.params.id]) {
@@ -160,34 +164,6 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
-//LOGIN ROUTES
-app.get("/login", (req, res) => {
-  const templateVars = {
-    user: {},
-  };
-  res.render("urls_login", templateVars);
-})
-
-app.post("/login", (req, res) => {
-  const { email, password } = req.body;
-  const user = getUserByEmail(email);
-  if (!user){
-    res.status(403).send("Email does not exist");
-    return;
-  } else if(user.password !== password) {
-    res.status(403).send("Password is incorrect");
-    return;
-  }
-  res.cookie("user_id", user.id);
-  res.redirect("/urls");
-});
-
-//LOGOUT ROUTE
-app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
-  res.redirect("/login");
-});
-
 //REGISTER ROUTES
 app.get("/register", (req, res) => {
   const templateVars = {
@@ -197,12 +173,10 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  const id = generateRandomString();
   //fetching email and password submitted to the form
-  const email = req.body.email;
-  const password = req.body.password;
+  const { email, password } = req.body;
 
-  //check if email and password are empty strings
+  //check if email or password is an empty string
   if (!email || !password) {
     res.status(400).send("Please enter both email and password");
     return;
@@ -214,11 +188,52 @@ app.post("/register", (req, res) => {
     return;
   }
 
+  const id = generateRandomString();
+
   //creating a new user
   users[id] = { id, email, password };
-  //saving user id as cookie
+
+  //setting user id as cookie
   res.cookie("user_id", id);
   res.redirect("/urls");
+});
+
+//LOGIN ROUTES
+app.get("/login", (req, res) => {
+  const templateVars = {
+    user: {},
+  };
+  res.render("urls_login", templateVars);
+});
+
+app.post("/login", (req, res) => {
+  //fetching email and password submitted to the form
+  const { email, password } = req.body;
+
+  //check if email or password is an empty string
+  if (!email || !password) {
+    res.status(400).send("Please enter both email and password");
+    return;
+  }
+
+  const user = getUserByEmail(email);
+  if (!user) {
+    res.status(403).send("Email does not exist");
+    return;
+  } else if (user.password !== password) {
+    res.status(403).send("Password is incorrect");
+    return;
+  }
+
+  //setting user id as cookie
+  res.cookie("user_id", user.id);
+  res.redirect("/urls");
+});
+
+//LOGOUT ROUTE
+app.post("/logout", (req, res) => {
+  res.clearCookie("user_id");
+  res.redirect("/login");
 });
 
 app.listen(PORT, () => {
