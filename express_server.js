@@ -168,11 +168,13 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
+//LOGOUT ROUTE
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect("urls");
+  res.redirect("/login");
 });
 
+//REGISTER ROUTES
 app.get("/register", (req, res) => {
   res.render("urls_register");
 });
