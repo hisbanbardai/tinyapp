@@ -68,6 +68,12 @@ app.get("/hello", (req, res) => {
 
 //SHOW LIST OF ALL URLS ROUTE
 app.get("/urls", (req, res) => {
+  //check if user is not logged in then redirect to login page
+  if (!checkIfCookieSet(req)) {
+    res.redirect("/login");
+    return;
+  }
+
   for (const user in users) {
     const user_id = req.cookies["user_id"];
     if (users[user].id === user_id) {
@@ -143,10 +149,7 @@ app.get("/urls/:id", (req, res) => {
 app.post("/urls", (req, res) => {
   //check if user is not logged in then redirect to login page
   if (!checkIfCookieSet(req)) {
-    const templateVars = {
-      user: {},
-    };
-    res.render("urls_not_logged_in", templateVars);
+    res.send("<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n");
     return; 
   }
 
@@ -160,7 +163,7 @@ app.post("/urls", (req, res) => {
 app.get("/u/:id", (req, res) => {
   //if id does not exist
   if (!urlDatabase[req.params.id]) {
-    res.status(404).send("Does not exist in the urlDatabase.");
+    res.status(404).send("<html><body>Short URL does not exist in the urlDatabase.</body></html>\n");
   } else {
     //fetch longURL that is set against the shortURL
     const longURL = urlDatabase[req.params.id];
