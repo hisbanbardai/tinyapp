@@ -29,7 +29,7 @@ function getUserByEmail(email) {
 }
 
 function checkIfCookieSet(req) {
-  return req.cookies["user_id"]; 
+  return req.cookies["user_id"];
 }
 
 //URL DB
@@ -43,7 +43,7 @@ const users = {
   userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+    password: "purple",
   },
   user2RandomID: {
     id: "user2RandomID",
@@ -88,6 +88,12 @@ app.get("/urls", (req, res) => {
 
 //CREATE NEW URL PAGE ROUTE
 app.get("/urls/new", (req, res) => {
+  //check if user is not logged in then redirect to login page
+  if (!checkIfCookieSet(req)) {
+    res.redirect("/login");
+    return;
+  }
+
   for (const user in users) {
     const user_id = req.cookies["user_id"];
     if (users[user].id === user_id) {
@@ -135,6 +141,15 @@ app.get("/urls/:id", (req, res) => {
 
 //CREATE NEW URL ROUTE
 app.post("/urls", (req, res) => {
+  //check if user is not logged in then redirect to login page
+  if (!checkIfCookieSet(req)) {
+    const templateVars = {
+      user: {},
+    };
+    res.render("urls_not_logged_in", templateVars);
+    return; 
+  }
+
   const shortURL = generateRandomString();
   //adding shortURL to urlDatabase
   urlDatabase[shortURL] = req.body.longURL;
@@ -170,9 +185,8 @@ app.post("/urls/:id", (req, res) => {
 
 //REGISTER ROUTES
 app.get("/register", (req, res) => {
-
   //if user is logged in then redirect to urls page
-  if(checkIfCookieSet(req)) {
+  if (checkIfCookieSet(req)) {
     res.redirect("/urls");
     return;
   }
@@ -211,13 +225,12 @@ app.post("/register", (req, res) => {
 
 //LOGIN ROUTES
 app.get("/login", (req, res) => {
-
   //if user is logged in then redirect to urls page
-  if(checkIfCookieSet(req)) {
+  if (checkIfCookieSet(req)) {
     res.redirect("/urls");
     return;
   }
-  
+
   const templateVars = {
     user: {},
   };
