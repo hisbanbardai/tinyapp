@@ -32,6 +32,16 @@ function checkIfCookieSet(req) {
   return req.cookies["user_id"];
 }
 
+function urlsForUser(id) {
+  const filteredResults = {};
+  for (url in urlDatabase) {
+    if (urlDatabase[url].userID === id) {
+      filteredResults[url] = urlDatabase[url];
+    }
+  }
+  return filteredResults;
+}
+
 //URL DB
 const urlDatabase = {
   b6UTxQ: {
@@ -40,7 +50,7 @@ const urlDatabase = {
   },
   i3BoGr: {
     longURL: "https://www.google.ca",
-    userID: "aJ48lW",
+    userID: "userRandomID",
   },
 };
 
@@ -74,21 +84,20 @@ app.get("/hello", (req, res) => {
 
 //SHOW LIST OF ALL URLS ROUTE
 app.get("/urls", (req, res) => {
-  console.log(users);
-
   //check if user is not logged in then redirect to login page
   if (!checkIfCookieSet(req)) {
-    res.redirect("/login");
+    res.send(
+      "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> or <a href='/register'>register</a> first.</h3></body></html>\n"
+    );
     return;
   }
-
 
   for (const user in users) {
     const user_id = req.cookies["user_id"];
     if (users[user].id === user_id) {
       const templateVars = {
         user: users[user],
-        urls: urlDatabase,
+        urls: urlsForUser(user_id),
       };
       res.render("urls_index", templateVars);
       return;
@@ -103,8 +112,6 @@ app.get("/urls", (req, res) => {
 
 //CREATE NEW URL PAGE ROUTE
 app.get("/urls/new", (req, res) => {
-
-  console.log(users);
   //check if user is not logged in then redirect to login page
   if (!checkIfCookieSet(req)) {
     res.redirect("/login");
@@ -118,7 +125,6 @@ app.get("/urls/new", (req, res) => {
         user: users[user],
       };
       res.render("urls_new", templateVars);
-      console.log(urlDatabase);
       return;
     }
   }
@@ -138,22 +144,28 @@ app.get("/urls/:id", (req, res) => {
       //check if any user is logged in then send user object in temp Vars
       const user_id = req.cookies["user_id"];
       if (users[user].id === user_id) {
-        const templateVars = {
-          user: users[user],
-          id: req.params.id,
-          longURL: urlDatabase[req.params.id].longURL,
-        };
-        res.render("urls_show", templateVars);
-        return;
+        //get user's urls
+        const urls = urlsForUser(user_id);
+        //check if user is accessing own url
+        if (urls[req.params.id]) {
+          const templateVars = {
+            user: users[user],
+            id: req.params.id,
+            longURL: urlDatabase[req.params.id].longURL,
+          };
+          res.render("urls_show", templateVars);
+          return;
+        } else {
+          res.send(
+            "<html><body><h3>You are trying to access a url that you do not own.</h3></body></html>\n"
+          );
+        }
       }
     }
-    //if no user is logged in then send empty user object
-    const templateVars = {
-      user: {},
-      id: req.params.id,
-      longURL: urlDatabase[req.params.id],
-    };
-    res.render("urls_show", templateVars);
+    //if user is not logged in
+    res.send(
+      "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n"
+    );
   }
 });
 
@@ -161,15 +173,17 @@ app.get("/urls/:id", (req, res) => {
 app.post("/urls", (req, res) => {
   //check if user is not logged in then redirect to login page
   if (!checkIfCookieSet(req)) {
-    res.send("<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n");
-    return; 
+    res.send(
+      "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n"
+    );
+    return;
   }
 
   const shortURL = generateRandomString();
   //adding shortURL to urlDatabase
   urlDatabase[shortURL] = {
     longURL: req.body.longURL,
-    userID: req.cookies["user_id"]
+    userID: req.cookies["user_id"],
   };
   res.redirect(`/urls/${shortURL}`);
 });
@@ -178,7 +192,11 @@ app.post("/urls", (req, res) => {
 app.get("/u/:id", (req, res) => {
   //if id does not exist
   if (!urlDatabase[req.params.id]) {
-    res.status(404).send("<html><body><h3>Short URL does not exist in the urlDatabase. Go to <a href='/'>home</a> page</h3></body></html>\n");
+    res
+      .status(404)
+      .send(
+        "<html><body><h3>Short URL does not exist in the urlDatabase. Go to <a href='/'>home</a> page</h3></body></html>\n"
+      );
   } else {
     //fetch longURL that is set against the shortURL
     const longURL = urlDatabase[req.params.id].longURL;
@@ -209,6 +227,7 @@ app.get("/register", (req, res) => {
     return;
   }
 
+  //if user is not logged in then send empty user object
   const templateVars = {
     user: {},
   };
@@ -239,7 +258,6 @@ app.post("/register", (req, res) => {
   //setting user id as cookie
   res.cookie("user_id", id);
   res.redirect("/urls");
-  console.log(users);
 });
 
 //LOGIN ROUTES
