@@ -34,8 +34,14 @@ function checkIfCookieSet(req) {
 
 //URL DB
 const urlDatabase = {
-  b2xVn2: "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
 //USERS DB
@@ -68,11 +74,14 @@ app.get("/hello", (req, res) => {
 
 //SHOW LIST OF ALL URLS ROUTE
 app.get("/urls", (req, res) => {
+  console.log(users);
+
   //check if user is not logged in then redirect to login page
   if (!checkIfCookieSet(req)) {
     res.redirect("/login");
     return;
   }
+
 
   for (const user in users) {
     const user_id = req.cookies["user_id"];
@@ -94,6 +103,8 @@ app.get("/urls", (req, res) => {
 
 //CREATE NEW URL PAGE ROUTE
 app.get("/urls/new", (req, res) => {
+
+  console.log(users);
   //check if user is not logged in then redirect to login page
   if (!checkIfCookieSet(req)) {
     res.redirect("/login");
@@ -107,6 +118,7 @@ app.get("/urls/new", (req, res) => {
         user: users[user],
       };
       res.render("urls_new", templateVars);
+      console.log(urlDatabase);
       return;
     }
   }
@@ -129,7 +141,7 @@ app.get("/urls/:id", (req, res) => {
         const templateVars = {
           user: users[user],
           id: req.params.id,
-          longURL: urlDatabase[req.params.id],
+          longURL: urlDatabase[req.params.id].longURL,
         };
         res.render("urls_show", templateVars);
         return;
@@ -155,7 +167,10 @@ app.post("/urls", (req, res) => {
 
   const shortURL = generateRandomString();
   //adding shortURL to urlDatabase
-  urlDatabase[shortURL] = req.body.longURL;
+  urlDatabase[shortURL] = {
+    longURL: req.body.longURL,
+    userID: req.cookies["user_id"]
+  };
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -163,10 +178,10 @@ app.post("/urls", (req, res) => {
 app.get("/u/:id", (req, res) => {
   //if id does not exist
   if (!urlDatabase[req.params.id]) {
-    res.status(404).send("<html><body>Short URL does not exist in the urlDatabase.</body></html>\n");
+    res.status(404).send("<html><body><h3>Short URL does not exist in the urlDatabase. Go to <a href='/'>home</a> page</h3></body></html>\n");
   } else {
     //fetch longURL that is set against the shortURL
-    const longURL = urlDatabase[req.params.id];
+    const longURL = urlDatabase[req.params.id].longURL;
     res.redirect(longURL);
   }
 });
@@ -182,7 +197,7 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   //updating longURL in urlDatabase
-  urlDatabase[shortURL] = req.body.longURL;
+  urlDatabase[shortURL].longURL = req.body.longURL;
   res.redirect("/urls");
 });
 
@@ -224,6 +239,7 @@ app.post("/register", (req, res) => {
   //setting user id as cookie
   res.cookie("user_id", id);
   res.redirect("/urls");
+  console.log(users);
 });
 
 //LOGIN ROUTES
