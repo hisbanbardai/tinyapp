@@ -47,7 +47,7 @@ const users = {
 };
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.redirect("/urls");
 });
 
 app.get("/urls.json", (req, res) => {
@@ -58,6 +58,7 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+//SHOW LIST OF ALL URLS ROUTE
 app.get("/urls", (req, res) => {
   for (const user in users) {
     const user_id = req.cookies["user_id"];
@@ -77,6 +78,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+//CREATE NEW URL PAGE ROUTE
 app.get("/urls/new", (req, res) => {
   for (const user in users) {
     const user_id = req.cookies["user_id"];
@@ -94,12 +96,14 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+//SHOW PARTICULAR URL ROUTE
 app.get("/urls/:id", (req, res) => {
   //if id does not exist
   if (!urlDatabase[req.params.id]) {
     res.status(404).send("Does not exist in the urlDatabase.");
   } else {
     for (const user in users) {
+      //check if any user is logged in then send user object in temp Vars
       const user_id = req.cookies["user_id"];
       if (users[user].id === user_id) {
         const templateVars = {
@@ -111,6 +115,7 @@ app.get("/urls/:id", (req, res) => {
         return;
       }
     }
+    //if no user is logged in then send empty user object 
     const templateVars = {
       user: {},
       id: req.params.id,
@@ -120,6 +125,7 @@ app.get("/urls/:id", (req, res) => {
   }
 });
 
+//CREATE NEW URL ROUTE
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   //adding shortURL to urlDatabase
@@ -127,22 +133,26 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
+//REDIRECT TO LONG URL USING SHORT URL
 app.get("/u/:id", (req, res) => {
   //if id does not exist
   if (!urlDatabase[req.params.id]) {
     res.status(404).send("Does not exist in the urlDatabase.");
   } else {
+    //fetch longURL that is set against the shortURL
     const longURL = urlDatabase[req.params.id];
     res.redirect(longURL);
   }
 });
 
+//DELETE URL ROUTE
 app.post("/urls/:id/delete", (req, res) => {
   const id = req.params.id;
   delete urlDatabase[`${id}`];
   res.redirect(`/urls`);
 });
 
+//UPDATE EXISITNG URL ROUTE
 app.post("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   //updating longURL in urlDatabase
@@ -150,8 +160,12 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
+//LOGIN ROUTES
 app.get("/login", (req, res) => {
-  res.render("urls_login");
+  const templateVars = {
+    user: {},
+  };
+  res.render("urls_login", templateVars);
 })
 
 app.post("/login", (req, res) => {
@@ -176,7 +190,10 @@ app.post("/logout", (req, res) => {
 
 //REGISTER ROUTES
 app.get("/register", (req, res) => {
-  res.render("urls_register");
+  const templateVars = {
+    user: {},
+  };
+  res.render("urls_register", templateVars);
 });
 
 app.post("/register", (req, res) => {
