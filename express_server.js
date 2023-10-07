@@ -1,5 +1,7 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
+const morgan = require('morgan');
 const app = express();
 const PORT = 8081; // default port 8081
 
@@ -11,6 +13,8 @@ app.use(express.urlencoded({ extended: true }));
 
 //cookie parser library to parse cookie headers
 app.use(cookieParser());
+
+app.use(morgan('dev'));
 
 //generate string for shortURL
 function generateRandomString() {
@@ -32,6 +36,7 @@ function checkIfCookieSet(req) {
   return req.cookies["user_id"];
 }
 
+//filter urls for the specific user
 function urlsForUser(id) {
   const filteredResults = {};
   for (url in urlDatabase) {
@@ -70,6 +75,7 @@ const users = {
 
 //DEFAULT HOMEPAGE ROUTE
 app.get("/", (req, res) => {
+  console.log(users);
   res.redirect("/urls");
 });
 
