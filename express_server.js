@@ -39,7 +39,8 @@ function getUserByEmail(email) {
 }
 
 function checkIfCookieSet(req) {
-  return req.cookies["user_id"];
+  // return req.cookies["user_id"];
+  return req.session.user_id;
 }
 
 //filter urls for the specific user
@@ -105,7 +106,7 @@ app.get("/urls", (req, res) => {
   }
 
   for (const user in users) {
-    const user_id = req.cookies["user_id"];
+    const user_id = req.session.user_id; //req.cookies["user_id"];
     if (users[user].id === user_id) {
       const templateVars = {
         user: users[user],
@@ -131,7 +132,7 @@ app.get("/urls/new", (req, res) => {
   }
 
   for (const user in users) {
-    const user_id = req.cookies["user_id"];
+    const user_id = req.session.user_id; //req.cookies["user_id"];
     if (users[user].id === user_id) {
       const templateVars = {
         user: users[user],
@@ -154,7 +155,7 @@ app.get("/urls/:id", (req, res) => {
   } else {
     for (const user in users) {
       //check if any user is logged in then send user object in temp Vars
-      const user_id = req.cookies["user_id"];
+      const user_id = req.session.user_id; //req.cookies["user_id"];
       if (users[user].id === user_id) {
         //get user's urls
         const urls = urlsForUser(user_id);
@@ -195,7 +196,7 @@ app.post("/urls", (req, res) => {
   //adding shortURL to urlDatabase
   urlDatabase[shortURL] = {
     longURL: req.body.longURL,
-    userID: req.cookies["user_id"],
+    userID: req.session.user_id, //req.cookies["user_id"],
   };
   res.redirect(`/urls/${shortURL}`);
 });
@@ -238,7 +239,7 @@ app.post("/urls/:id/delete", (req, res) => {
   }
 
   //check if user does not own url
-  const user_id = req.cookies["user_id"];
+  const user_id = req.session.user_id; //req.cookies["user_id"];
   //get user's urls
   const urls = urlsForUser(user_id);
   //check if user is accessing own url
@@ -274,7 +275,7 @@ app.post("/urls/:id", (req, res) => {
   }
 
   //check if user does not own url
-  const user_id = req.cookies["user_id"];
+  const user_id = req.session.user_id; //req.cookies["user_id"];
   //get user's urls
   const urls = urlsForUser(user_id);
   //check if user is accessing own url
@@ -332,7 +333,8 @@ app.post("/register", (req, res) => {
   };
 
   //setting user id as cookie
-  res.cookie("user_id", id);
+// res.cookie("user_id", id);
+  req.session.user_id = id;
   res.redirect("/urls");
 });
 
@@ -374,13 +376,15 @@ app.post("/login", (req, res) => {
   }
 
   //setting user id as cookie
-  res.cookie("user_id", user.id);
+  // res.cookie("user_id", user.id);
+  req.session.user_id = user.id;
   res.redirect("/urls");
 });
 
 //LOGOUT ROUTE
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  //res.clearCookie("user_id");
+  req.session = null;
   res.redirect("/login");
 });
 
