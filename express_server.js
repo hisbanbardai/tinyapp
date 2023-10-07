@@ -64,12 +64,12 @@ const users = {
   userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple",
+    password: bcrypt.hashSync("purple-monkey-dinosaur", 10),
   },
   user2RandomID: {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk",
+    password: bcrypt.hashSync("dishwasher-funk", 10),
   },
 };
 
@@ -314,10 +314,16 @@ app.post("/register", (req, res) => {
     return;
   }
 
+  //generating id and hashing user input password
   const id = generateRandomString();
+  const hashedPassword = bcrypt.hashSync(password, 10);
 
-  //creating a new user
-  users[id] = { id, email, password };
+  //creating a new user in users db
+  users[id] = {
+    id: id,
+    email: email,
+    password: hashedPassword
+  };
 
   //setting user id as cookie
   res.cookie("user_id", id);
