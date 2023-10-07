@@ -1,5 +1,6 @@
 const express = require("express");
-const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
+// const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
 const morgan = require("morgan");
 const app = express();
@@ -12,7 +13,12 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
 //cookie parser library to parse cookie headers
-app.use(cookieParser());
+// app.use(cookieParser());
+
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2']
+}))
 
 app.use(morgan("dev"));
 
