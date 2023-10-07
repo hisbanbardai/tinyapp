@@ -1,7 +1,7 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
-const morgan = require('morgan');
+const morgan = require("morgan");
 const app = express();
 const PORT = 8081; // default port 8081
 
@@ -14,7 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 //cookie parser library to parse cookie headers
 app.use(cookieParser());
 
-app.use(morgan('dev'));
+app.use(morgan("dev"));
 
 //generate string for shortURL
 function generateRandomString() {
@@ -322,7 +322,7 @@ app.post("/register", (req, res) => {
   users[id] = {
     id: id,
     email: email,
-    password: hashedPassword
+    password: hashedPassword,
   };
 
   //setting user id as cookie
@@ -358,7 +358,11 @@ app.post("/login", (req, res) => {
   if (!user) {
     res.status(403).send("Email does not exist");
     return;
-  } else if (user.password !== password) {
+  }
+
+  const isCorrectPassword = bcrypt.compareSync(password, user.password);
+
+  if (!isCorrectPassword) {
     res.status(403).send("Password is incorrect");
     return;
   }
