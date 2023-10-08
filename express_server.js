@@ -7,6 +7,12 @@ const cookieSession = require("cookie-session");
 // const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
 const morgan = require("morgan");
+const {
+  getUserByEmail,
+  generateRandomString,
+  checkIfCookieSet,
+  urlsForUser,
+} = require("./helpers");
 
 //////////////////////////////////////////////////////////////////////////////
 // Set-Up
@@ -32,48 +38,14 @@ app.use(express.urlencoded({ extended: true }));
 //cookie parser library to parse cookie headers
 // app.use(cookieParser());
 
-app.use(cookieSession({
-  name: 'session',
-  keys: ['key1', 'key2']
-}))
+app.use(
+  cookieSession({
+    name: "session",
+    keys: ["key1", "key2"],
+  })
+);
 
 app.use(morgan("dev"));
-
-//////////////////////////////////////////////////////////////////////////////
-// Utility Functions
-//////////////////////////////////////////////////////////////////////////////
-
-//generate string for shortURL
-function generateRandomString() {
-  //toString(36) to convert it into base 36 (26 char + 0-9)
-  return Math.random().toString(36).slice(2, 8);
-}
-
-//user lookup helper function
-const getUserByEmail = function (email, database) {
-  for (const user in database) {
-    if (database[user].email === email) {
-      return database[user];
-    }
-  }
-  return null;
-}
-
-function checkIfCookieSet(req) {
-  // return req.cookies["user_id"];
-  return req.session.user_id;
-}
-
-//filter urls for the specific user
-function urlsForUser(id) {
-  const filteredResults = {};
-  for (url in urlDatabase) {
-    if (urlDatabase[url].userID === id) {
-      filteredResults[url] = urlDatabase[url];
-    }
-  }
-  return filteredResults;
-}
 
 //////////////////////////////////////////////////////////////////////////////
 // "Database"
@@ -128,9 +100,11 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req, res) => {
   //check if user is not logged in then redirect to login page
   if (!checkIfCookieSet(req)) {
-    res.status(401).send(
-      "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> or <a href='/register'>register</a> first.</h3></body></html>\n"
-    );
+    res
+      .status(401)
+      .send(
+        "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> or <a href='/register'>register</a> first.</h3></body></html>\n"
+      );
     return;
   }
 
@@ -139,7 +113,7 @@ app.get("/urls", (req, res) => {
     if (users[user].id === user_id) {
       const templateVars = {
         user: users[user],
-        urls: urlsForUser(user_id),
+        urls: urlsForUser(user_id, urlDatabase),
       };
       res.render("urls_index", templateVars);
       return;
@@ -187,7 +161,7 @@ app.get("/urls/:id", (req, res) => {
       const user_id = req.session.user_id; //req.cookies["user_id"];
       if (users[user].id === user_id) {
         //get user's urls
-        const urls = urlsForUser(user_id);
+        const urls = urlsForUser(user_id, urlDatabase);
         //check if user is accessing own url
         if (urls[req.params.id]) {
           const templateVars = {
@@ -198,17 +172,21 @@ app.get("/urls/:id", (req, res) => {
           res.render("urls_show", templateVars);
           return;
         } else {
-          res.status(403).send(
-            "<html><body><h3>You are trying to access a url that you do not own.</h3></body></html>\n"
-          );
+          res
+            .status(403)
+            .send(
+              "<html><body><h3>You are trying to access a url that you do not own.</h3></body></html>\n"
+            );
           return;
         }
       }
     }
     //if user is not logged in
-    res.status(401).send(
-      "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n"
-    );
+    res
+      .status(401)
+      .send(
+        "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n"
+      );
     return;
   }
 });
@@ -217,9 +195,11 @@ app.get("/urls/:id", (req, res) => {
 app.post("/urls", (req, res) => {
   //check if user is not logged in
   if (!checkIfCookieSet(req)) {
-    res.status(401).send(
-      "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n"
-    );
+    res
+      .status(401)
+      .send(
+        "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n"
+      );
     return;
   }
 
@@ -263,25 +243,29 @@ app.post("/urls/:id/delete", (req, res) => {
 
   //check if user is not logged in
   if (!checkIfCookieSet(req)) {
-    res.status(401).send(
-      "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n"
-    );
+    res
+      .status(401)
+      .send(
+        "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n"
+      );
     return;
   }
 
   //check if user does not own url
   const user_id = req.session.user_id; //req.cookies["user_id"];
   //get user's urls
-  const urls = urlsForUser(user_id);
+  const urls = urlsForUser(user_id, urlDatabase);
   //check if user is accessing own url
   if (urls[id]) {
     delete urlDatabase[`${id}`];
     res.redirect(`/urls`);
     return;
   }
-  res.status(403).send(
-    "<html><body><h3>You are trying to delete a url that you do not own.</h3></body></html>\n"
-  );
+  res
+    .status(403)
+    .send(
+      "<html><body><h3>You are trying to delete a url that you do not own.</h3></body></html>\n"
+    );
 });
 
 //UPDATE EXISITNG URL ROUTE
@@ -299,16 +283,18 @@ app.post("/urls/:id", (req, res) => {
 
   //check if user is not logged in
   if (!checkIfCookieSet(req)) {
-    res.status(401).send(
-      "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n"
-    );
+    res
+      .status(401)
+      .send(
+        "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n"
+      );
     return;
   }
 
   //check if user does not own url
   const user_id = req.session.user_id; //req.cookies["user_id"];
   //get user's urls
-  const urls = urlsForUser(user_id);
+  const urls = urlsForUser(user_id, urlDatabase);
   //check if user is accessing own url
   if (urls[shortURL]) {
     //updating longURL in urlDatabase
@@ -316,9 +302,11 @@ app.post("/urls/:id", (req, res) => {
     res.redirect("/urls");
     return;
   }
-  res.status(403).send(
-    "<html><body><h3>You are trying to update a url that you do not own.</h3></body></html>\n"
-  );
+  res
+    .status(403)
+    .send(
+      "<html><body><h3>You are trying to update a url that you do not own.</h3></body></html>\n"
+    );
 });
 
 //REGISTER ROUTES
@@ -364,7 +352,7 @@ app.post("/register", (req, res) => {
   };
 
   //setting user id as cookie
-// res.cookie("user_id", id);
+  // res.cookie("user_id", id);
   req.session.user_id = id;
   res.redirect("/urls");
 });
