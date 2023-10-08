@@ -50,10 +50,10 @@ function generateRandomString() {
 }
 
 //user lookup helper function
-function getUserByEmail(email) {
-  for (const user in users) {
-    if (users[user].email === email) {
-      return users[user];
+const getUserByEmail = function (email, database) {
+  for (const user in database) {
+    if (database[user].email === email) {
+      return database[user];
     }
   }
   return null;
@@ -128,7 +128,7 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req, res) => {
   //check if user is not logged in then redirect to login page
   if (!checkIfCookieSet(req)) {
-    res.send(
+    res.status(401).send(
       "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> or <a href='/register'>register</a> first.</h3></body></html>\n"
     );
     return;
@@ -198,16 +198,18 @@ app.get("/urls/:id", (req, res) => {
           res.render("urls_show", templateVars);
           return;
         } else {
-          res.send(
+          res.status(403).send(
             "<html><body><h3>You are trying to access a url that you do not own.</h3></body></html>\n"
           );
+          return;
         }
       }
     }
     //if user is not logged in
-    res.send(
+    res.status(401).send(
       "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n"
     );
+    return;
   }
 });
 
@@ -215,7 +217,7 @@ app.get("/urls/:id", (req, res) => {
 app.post("/urls", (req, res) => {
   //check if user is not logged in
   if (!checkIfCookieSet(req)) {
-    res.send(
+    res.status(401).send(
       "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n"
     );
     return;
@@ -261,7 +263,7 @@ app.post("/urls/:id/delete", (req, res) => {
 
   //check if user is not logged in
   if (!checkIfCookieSet(req)) {
-    res.send(
+    res.status(401).send(
       "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n"
     );
     return;
@@ -277,7 +279,7 @@ app.post("/urls/:id/delete", (req, res) => {
     res.redirect(`/urls`);
     return;
   }
-  res.send(
+  res.status(403).send(
     "<html><body><h3>You are trying to delete a url that you do not own.</h3></body></html>\n"
   );
 });
@@ -297,7 +299,7 @@ app.post("/urls/:id", (req, res) => {
 
   //check if user is not logged in
   if (!checkIfCookieSet(req)) {
-    res.send(
+    res.status(401).send(
       "<html><body><h3>You are not logged in. Please <a href='/login'>login</a> first.</h3></body></html>\n"
     );
     return;
@@ -314,7 +316,7 @@ app.post("/urls/:id", (req, res) => {
     res.redirect("/urls");
     return;
   }
-  res.send(
+  res.status(403).send(
     "<html><body><h3>You are trying to update a url that you do not own.</h3></body></html>\n"
   );
 });
@@ -340,12 +342,12 @@ app.post("/register", (req, res) => {
 
   //check if email or password is an empty string
   if (!email || !password) {
-    res.status(400).send("Please enter both email and password");
+    res.status(401).send("Please enter both email and password");
     return;
   }
 
   //check if email already exists
-  if (getUserByEmail(email)) {
+  if (getUserByEmail(email, users)) {
     res.status(400).send("Email already exists. Please use another email");
     return;
   }
@@ -387,20 +389,20 @@ app.post("/login", (req, res) => {
 
   //check if email or password is an empty string
   if (!email || !password) {
-    res.status(400).send("Please enter both email and password");
+    res.status(401).send("Please enter both email and password");
     return;
   }
 
-  const user = getUserByEmail(email);
+  const user = getUserByEmail(email, users);
   if (!user) {
-    res.status(403).send("Email does not exist");
+    res.status(401).send("Email does not exist");
     return;
   }
 
   const isCorrectPassword = bcrypt.compareSync(password, user.password);
 
   if (!isCorrectPassword) {
-    res.status(403).send("Password is incorrect");
+    res.status(401).send("Password is incorrect");
     return;
   }
 
