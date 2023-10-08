@@ -154,7 +154,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   //if id does not exist
   if (!urlDatabase[req.params.id]) {
-    res.status(404).send("Does not exist in the urlDatabase.");
+    res.status(404).send("<html><body><h3>Short URL does not exist in the urlDatabase. Go to <a href='/'>home</a> page</h3></body></html>\n");
   } else {
     for (const user in users) {
       //check if any user is logged in then send user object in temp Vars
