@@ -330,13 +330,21 @@ app.post("/register", (req, res) => {
 
   //check if email or password is an empty string
   if (!email || !password) {
-    res.status(401).send("Please enter both email and password");
+    res
+      .status(401)
+      .send(
+        "<html><body><h4>Please enter both email and password. Go <a href='/register'>back</a></h3></body></html>\n"
+      );
     return;
   }
 
   //check if email already exists
   if (getUserByEmail(email, users)) {
-    res.status(400).send("Email already exists. Please use another email");
+    res
+      .status(400)
+      .send(
+        "<html><body><h4>Email already exists. Please use another email. Go <a href='/register'>back</a></h3></body></html>\n"
+      );
     return;
   }
 
@@ -377,20 +385,32 @@ app.post("/login", (req, res) => {
 
   //check if email or password is an empty string
   if (!email || !password) {
-    res.status(401).send("Please enter both email and password");
+    res
+      .status(401)
+      .send(
+        "<html><body><h4>Please enter both email and password. Go <a href='/login'>back</a></h3></body></html>\n"
+      );
     return;
   }
 
   const user = getUserByEmail(email, users);
   if (!user) {
-    res.status(401).send("Email does not exist");
+    res
+      .status(401)
+      .send(
+        "<html><body><h4>Email does not exist. Go <a href='/login'>back</a></h3></body></html>\n"
+      );
     return;
   }
 
   const isCorrectPassword = bcrypt.compareSync(password, user.password);
 
   if (!isCorrectPassword) {
-    res.status(401).send("Password is incorrect");
+    res
+      .status(401)
+      .send(
+        "<html><body><h4>Password is incorrect. Go <a href='/login'>back</a></h3></body></html>\n"
+      );
     return;
   }
 
