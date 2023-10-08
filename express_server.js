@@ -4,7 +4,6 @@
 
 const express = require("express");
 const cookieSession = require("cookie-session");
-// const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
 const morgan = require("morgan");
 const {
@@ -34,9 +33,6 @@ app.set("view engine", "ejs");
 
 //body parser library to convert request body from Buffer to string
 app.use(express.urlencoded({ extended: true }));
-
-//cookie parser library to parse cookie headers
-// app.use(cookieParser());
 
 app.use(
   cookieSession({
@@ -154,7 +150,11 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   //if id does not exist
   if (!urlDatabase[req.params.id]) {
-    res.status(404).send("<html><body><h3>Short URL does not exist in the urlDatabase. Go to <a href='/'>home</a> page</h3></body></html>\n");
+    res
+      .status(404)
+      .send(
+        "<html><body><h3>Short URL does not exist in the urlDatabase. Go to <a href='/'>home</a> page</h3></body></html>\n"
+      );
   } else {
     for (const user in users) {
       //check if any user is logged in then send user object in temp Vars
@@ -252,7 +252,7 @@ app.post("/urls/:id/delete", (req, res) => {
   }
 
   //check if user does not own url
-  const user_id = req.session.user_id; //req.cookies["user_id"];
+  const user_id = req.session.user_id;
   //get user's urls
   const urls = urlsForUser(user_id, urlDatabase);
   //check if user is accessing own url
@@ -292,7 +292,7 @@ app.post("/urls/:id", (req, res) => {
   }
 
   //check if user does not own url
-  const user_id = req.session.user_id; //req.cookies["user_id"];
+  const user_id = req.session.user_id;
   //get user's urls
   const urls = urlsForUser(user_id, urlDatabase);
   //check if user is accessing own url
@@ -360,7 +360,6 @@ app.post("/register", (req, res) => {
   };
 
   //setting user id as cookie
-  // res.cookie("user_id", id);
   req.session.user_id = id;
   res.redirect("/urls");
 });
@@ -415,14 +414,12 @@ app.post("/login", (req, res) => {
   }
 
   //setting user id as cookie
-  // res.cookie("user_id", user.id);
   req.session.user_id = user.id;
   res.redirect("/urls");
 });
 
 //LOGOUT ROUTE
 app.post("/logout", (req, res) => {
-  //res.clearCookie("user_id");
   req.session = null;
   res.redirect("/login");
 });
